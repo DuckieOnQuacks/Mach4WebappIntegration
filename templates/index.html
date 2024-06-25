@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mach4 Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mach4 Control</h1>
+
+        <div class="form-group">
+            <h2>Set Register Value</h2>
+            <label for="set-register-path">Register Path</label>
+            <input type="text" id="set-register-path" required>
+            <label for="set-register-value">Value</label>
+            <input type="number" id="set-register-value" required>
+            <button onclick="setRegister()">Set Register</button>
+            <div id="set-response" class="response"></div>
+        </div>
+
+        <div class="form-group">
+            <h2>Get Register Value</h2>
+            <label for="get-register-path">Register Path</label>
+            <input type="text" id="get-register-path" required>
+            <button onclick="getRegister()">Get Register</button>
+            <div id="get-response" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        function setRegister() {
+            const path = document.getElementById('set-register-path').value;
+            const value = document.getElementById('set-register-value').value;
+
+            fetch('/set_register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ path, value }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseDiv = document.getElementById('set-response');
+                if (data.success) {
+                    responseDiv.innerHTML = 'Register value set successfully.';
+                } else {
+                    responseDiv.innerHTML = `Error: ${data.error}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function getRegister() {
+            const path = document.getElementById('get-register-path').value;
+
+            fetch(`/get_register?path=${encodeURIComponent(path)}`)
+            .then(response => response.json())
+            .then(data => {
+                const responseDiv = document.getElementById('get-response');
+                if (data.value !== undefined) {
+                    responseDiv.innerHTML = `Register value: ${data.value}`;
+                } else {
+                    responseDiv.innerHTML = `Error: ${data.error}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
