@@ -11,11 +11,13 @@ dll_path = "C:\\Mach4Industrial\\Mach4IPC-x64.dll"
 ip_address = "localhost"
 mach4 = Mach4Control(dll_path, ip_address)
 
-# Ensure IPC is set up at startup
-try:
-    mach4.do_connect()
-except Exception as e:
-    print(f"Initialization error: {e}")
+@app.route('/connect_mach4', methods=['POST'])
+def connect_mach4():
+    try:
+        mach4.do_connect()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/set_starting_pallet', methods=['POST'])
 def set_starting_pallet():

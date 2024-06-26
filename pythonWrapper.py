@@ -38,7 +38,7 @@ class Mach4Control:
     def do_connect(self):
         if self.dll.mcIpcInit is not None:
             self.mInst = self.dll.mcIpcInit(self.ip_address)
-            self.connected = (self.mInst != 0)
+            self.connected = True
             if not self.connected:
                 raise Exception("Failed to connect to Mach4")
 
