@@ -9,10 +9,22 @@ app = Flask(__name__)
 # Initialize Mach4 control
 dll_path = "C:\\Mach4Industrial\\Mach4IPC-x64.dll"
 ip_address = "localhost"
-mach4 = Mach4Control(dll_path, ip_address)
+mach4 = None
+
+def load_mach4_control():
+    global mach4
+    try:
+        mach4 = Mach4Control(dll_path, ip_address)
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 @app.route('/connect_mach4', methods=['POST'])
 def connect_mach4():
+    success, error = load_mach4_control()
+    if not success:
+        return jsonify({'success': False, 'error': error})
+    
     try:
         mach4.do_connect()
         return jsonify({'success': True})
