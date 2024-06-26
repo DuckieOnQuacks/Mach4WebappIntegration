@@ -2,112 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mach4 Control</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
-    </style>
+    <title>Mach4 Control Interface</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+    <h1>Mach4 Control Interface</h1>
     <div class="container">
-        <h1>Mach4 Control</h1>
-
-        <div class="form-group">
-            <h2>Set Register Value</h2>
-            <label for="set-register-path">Register Path</label>
-            <input type="text" id="set-register-path" required>
-            <label for="set-register-value">Value</label>
-            <input type="number" id="set-register-value" required>
-            <button onclick="setRegister()">Set Register</button>
-            <div id="set-response" class="response"></div>
+        <div class="form-container">
+            <div class="form-section box">
+                <h2>Check IO Device Status</h2>
+                <form id="getIoStatusForm">
+                    <label for="ioPath">IO Device Path:</label>
+                    <input type="text" id="ioPath" name="ioPath" value="test"><br><br>
+                    <button type="submit">Get IO Status</button>
+                </form>
+                <p id="ioResult"></p>
+                <div class="display-window box">
+                    <h2>Z Position</h2>
+                    <button id="getZPos" class="btn-green">Get Z Position</button>
+                    <p id="zPosResult"></p>
+                </div>
+                <div class="display-window box">
+                    <h2>X Position</h2>
+                    <button id="getXPos" class="btn-green">Get X Position</button>
+                    <p id="xPosResult"></p>
+                </div>
+                <div class="display-window box">
+                    <h2>Y Position</h2>
+                    <button id="getYPos" class="btn-green">Get Y Position</button>
+                    <p id="yPosResult"></p>
+                </div>
+            </div>
+            <div class="pinpad-container box">
+                <h2 class="text-center">Pin Pad</h2>
+                <div class="card">
+                    <div class="row">
+                        <button type="button" class="pinpad-btn" value="1">1</button>
+                        <button type="button" class="pinpad-btn" value="2">2</button>
+                        <button type="button" class="pinpad-btn" value="3">3</button>
+                    </div>
+                    <div class="row">
+                        <button type="button" class="pinpad-btn" value="4">4</button>
+                        <button type="button" class="pinpad-btn" value="5">5</button>
+                        <button type="button" class="pinpad-btn" value="6">6</button>
+                    </div>
+                    <div class="row">
+                        <button type="button" class="pinpad-btn" value="7">7</button>
+                        <button type="button" class="pinpad-btn" value="8">8"></button>
+                        <button type="button" class="pinpad-btn" value="9">9</button>
+                    </div>
+                    <div class="row">
+                        <button type="button" class="pinpad-btn" value="del" id="delete-btn">Del</button>
+                        <button type="button" class="pinpad-btn" value="0">0</button>
+                        <button type="button" class="pinpad-btn" value="ok" id="submit-btn">Ok</button>
+                    </div>
+                </div>
+                <div class="box">
+                    <h2>Set Starting Pallet Register</h2>
+                    <form id="setStartingPalletForm">
+                        <label for="startingPallet">Starting Pallet:</label>
+                        <input type="number" id="startingPallet" name="startingPallet"><br><br>
+                        <button type="button" id="getStartingPallet" class="btn-green">Get Starting Pallet</button>
+                    </form>
+                    <p id="startingPalletResult"></p>
+                    <p id="startingPalletSuccess" class="success-message"></p>
+                    <br>
+                    <h2>Set Ending Pallet Register</h2>
+                    <form id="setEndingPalletForm">
+                        <label for="endingPallet">Ending Pallet:</label>
+                        <input type="number" id="endingPallet" name="endingPallet"><br><br>
+                        <button type="button" id="getEndingPallet" class="btn-green">Get Ending Pallet</button>
+                    </form>
+                    <p id="endingPalletResult"></p>
+                    <p id="endingPalletSuccess" class="success-message"></p>
+                </div>
+                <div id="modal" class="modal">
+                    <div class="modal-body">
+                        <span id="close">×</span>
+                        <p id="result"></p>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="form-group">
-            <h2>Get Register Value</h2>
-            <label for="get-register-path">Register Path</label>
-            <input type="text" id="get-register-path" required>
-            <button onclick="getRegister()">Get Register</button>
-            <div id="get-response" class="response"></div>
+        <div class="button-container">
+            <button id="cycleStart" class="btn-green">Cycle Start</button>
+            <button id="enable" class="btn-green">Enable</button>
         </div>
+        <div id="buttonResult"></div>
     </div>
-
-    <script>
-        function setRegister() {
-            const path = document.getElementById('set-register-path').value;
-            const value = document.getElementById('set-register-value').value;
-
-            fetch('/set_register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ path, value }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                const responseDiv = document.getElementById('set-response');
-                if (data.success) {
-                    responseDiv.innerHTML = 'Register value set successfully.';
-                } else {
-                    responseDiv.innerHTML = `Error: ${data.error}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-
-        function getRegister() {
-            const path = document.getElementById('get-register-path').value;
-
-            fetch(`/get_register?path=${encodeURIComponent(path)}`)
-            .then(response => response.json())
-            .then(data => {
-                const responseDiv = document.getElementById('get-response');
-                if (data.value !== undefined) {
-                    responseDiv.innerHTML = `Register value: ${data.value}`;
-                } else {
-                    responseDiv.innerHTML = `Error: ${data.error}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-    </script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
